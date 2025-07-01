@@ -3,7 +3,7 @@ name: bindings/csharp
 on:
   workflow_dispatch:
   push:
-    branches: [ "main", "dekomiss/bindingstrigger" ]
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
