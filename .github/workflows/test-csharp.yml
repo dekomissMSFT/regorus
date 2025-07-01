@@ -65,8 +65,12 @@ jobs:
       - run: echo '${{ steps.stepid.outputs.dotnet-version }}'
 
       - name: Set VersionSuffix environment variable
-        if: github.event_name == 'workflow_dispatch'
-        run: echo "VersionSuffix=manualtrigger" >> $GITHUB_ENV
+        if: github.event_name == 'workflow_dispatch' && startswith(matrix.os, 'ubuntu')
+        run: echo "VersionSuffix=manualtrigger" >> $GITHUB_ENV'
+
+      - name: Set VersionSuffix environment variable
+        if: github.event_name == 'workflow_dispatch' && startswith(matrix.os, 'windows')
+        run: echo "VersionSuffix=manualtrigger" >> $env:GITHUB_ENV
 
       - name: Download regorus ffi shared libraries
         uses: actions/download-artifact@v4
