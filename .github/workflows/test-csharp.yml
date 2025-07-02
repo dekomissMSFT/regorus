@@ -64,9 +64,11 @@ jobs:
 
       - run: echo '${{ steps.stepid.outputs.dotnet-version }}'
 
+      # The command to update the Github environment variables is slightly different between Linux/Windows
+      # We need both for the test_nuget step so set them both here even though the build always runs on Linux
       - name: Set VersionSuffix environment variable
         if: github.event_name == 'workflow_dispatch' && startswith(matrix.os, 'ubuntu')
-        run: echo "VersionSuffix=manualtrigger" >> $GITHUB_ENV'
+        run: echo "VersionSuffix=manualtrigger" >> $GITHUB_ENV
 
       - name: Set VersionSuffix environment variable
         if: github.event_name == 'workflow_dispatch' && startswith(matrix.os, 'windows')
