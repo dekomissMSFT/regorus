@@ -23,6 +23,25 @@ pub struct Engine {
     rego_v1: bool,
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct PolicyPackageNameDefinition {
+    source_file: String,
+    package_name: String
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct PolicyParameterDetails {
+    name: String,
+    modifiable: bool,
+    required: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct PolicyParameterDefinition {
+    source_file: String,
+    parameters: Vec<PolicyParameterDetails>,
+}
+
 /// Create a default engine.
 impl Default for Engine {
     fn default() -> Self {
@@ -926,27 +945,18 @@ impl Engine {
     /// # Ok(())
     /// # }
     /// ```
-    #[cfg(feature = "ast")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "ast")))]
-    pub fn get_policy_package_names(&self) -> Result<String> {
-        #[derive(Serialize)]
-        struct Policy<'a> {
-            source: &'a Source,
-            version: u32,
-            package_name: String,
-        }
-
+    pub fn get_policy_package_names(&self) -> Result<Vec<PolicyPackageNameDefinition>> {
         let mut package_names = vec![];
         for m in &self.modules {
             let package_name = Interpreter::get_path_string(&m.package.refr, None)?;
-            package_names.push(Policy {
-                source: &m.package.span.source,
-                version: 1,
+            package_names.push(PolicyPackageNameDefinition {
+                source_file: m.package.span.source.file().to_string(),
                 package_name: package_name,
             });
         }
 
-        serde_json::to_string_pretty(&package_names).map_err(anyhow::Error::msg)
+        // serde_json::to_string_pretty(&package_names).map_err(anyhow::Error::msg)
+        Ok(package_names)
     }
 
     /// Get the parameters defined in each policy.
@@ -967,24 +977,8 @@ impl Engine {
     /// # Ok(())
     /// # }
     /// ```
-    #[cfg(feature = "ast")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "ast")))]
-    pub fn get_policy_parameters(&self) -> Result<String> {
-        #[derive(Serialize)]
-        struct PolicyParameter {
-            name: String,
-            modifiable: bool,
-            required: bool,
-        }
-
-        #[derive(Serialize)]
-        struct Policy<'a> {
-            source: &'a Source,
-            version: u32,
-            parameters: Vec<PolicyParameter>,
-        }
-
-        let mut policies = vec![];
+    pub fn get_policy_parameters(&self) -> Result<Vec<PolicyParameterDefinition>> {
+        let mut policy_parameter_definitions = vec![];
         for m in &self.modules {
             let mut parameters = vec![];
             for rule in &m.policy {
@@ -994,7 +988,7 @@ impl Engine {
 
                     if paths.len() == 2 && paths[0] == "parameters".to_string() {
                         // Todo: Fetch fields other than name from rego metadoc for the parameter
-                        parameters.push(PolicyParameter {
+                        parameters.push(PolicyParameterDetails {
                             name: paths[1].to_string(),
                             modifiable: false,
                             required: false,
@@ -1003,14 +997,14 @@ impl Engine {
                 }
             }
 
-            policies.push(Policy {
-                source: &m.package.span.source,
-                version: 1,
+            policy_parameter_definitions.push(PolicyParameterDefinition {
+                source_file: m.package.span.source.file().to_string(),
                 parameters: parameters,
             });
         }
 
-        serde_json::to_string_pretty(&policies).map_err(anyhow::Error::msg)
+        // serde_json::to_string_pretty(&policies).map_err(anyhow::Error::msg)
+        Ok(policy_parameter_definitions)
     }
 
     fn make_parser<'a>(&self, source: &'a Source) -> Result<Parser<'a>> {
