@@ -37,9 +37,15 @@ pub struct PolicyParameterDetails {
 }
 
 #[derive(Debug, Clone, Serialize)]
+pub struct PolicyModifierDetails {
+    name: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
 pub struct PolicyParameterDefinition {
     source_file: String,
     parameters: Vec<PolicyParameterDetails>,
+    modifiers: Vec<PolicyModifierDetails>,
 }
 
 /// Create a default engine.
@@ -951,11 +957,10 @@ impl Engine {
             let package_name = Interpreter::get_path_string(&m.package.refr, None)?;
             package_names.push(PolicyPackageNameDefinition {
                 source_file: m.package.span.source.file().to_string(),
-                package_name: package_name,
+                package_name,
             });
         }
 
-        // serde_json::to_string_pretty(&package_names).map_err(anyhow::Error::msg)
         Ok(package_names)
     }
 
@@ -981,7 +986,12 @@ impl Engine {
         let mut policy_parameter_definitions = vec![];
         for m in &self.modules {
             let mut parameters = vec![];
+            let mut modifiers = vec![];
+
             for rule in &m.policy {
+
+                // Extract parameter definitions from the policy rule
+                // e.g. default parameters.a = 5
                 if let Rule::Default { refr, .. } = rule.as_ref() {
                     let path = Parser::get_path_ref_components(refr)?;
                     let paths: Vec<&str> = path.iter().map(|s| s.text()).collect();
@@ -995,15 +1005,35 @@ impl Engine {
                         })
                     }
                 }
+
+                // Extract modifiers to the parameters from the policy rule
+                // e.g. parameters.a = 5
+                if let Rule::Spec { head, .. } = rule.as_ref() {
+                    match head {
+                        RuleHead::Compr { refr, .. } => {
+                            let path = Parser::get_path_ref_components(refr)?;
+                            let paths: Vec<&str> = path.iter().map(|s| s.text()).collect();
+
+                            if paths.len() == 2 && paths[0] == "parameters".to_string() {
+                                // Todo: Fetch fields other than name from rego metadoc for the parameter
+                                modifiers.push(PolicyModifierDetails {
+                                    name: paths[1].to_string(),
+                                })
+                            }
+                        }
+                        RuleHead::Func { .. } => {}
+                        RuleHead::Set { .. } => {}
+                    }
+                }
             }
 
             policy_parameter_definitions.push(PolicyParameterDefinition {
                 source_file: m.package.span.source.file().to_string(),
                 parameters: parameters,
+                modifiers: modifiers
             });
         }
 
-        // serde_json::to_string_pretty(&policies).map_err(anyhow::Error::msg)
         Ok(policy_parameter_definitions)
     }
 

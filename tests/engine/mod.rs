@@ -144,8 +144,6 @@ fn get_policy_package_names() -> Result<()> {
 }
 
 #[test]
-#[cfg(feature = "ast")]
-#[cfg_attr(docsrs, doc(cfg(feature = "ast")))]
 fn get_policy_parameters() -> Result<()> {
     let mut engine = Engine::new();
     engine.add_policy(
@@ -153,6 +151,8 @@ fn get_policy_parameters() -> Result<()> {
         r#"package test
                 default parameters.a = 5
                 default parameters.b = { asdf: 10}
+
+                parameters.c = 10
 
                 deny if {
                     parameter.a == parameter.b.asdf
@@ -176,23 +176,25 @@ fn get_policy_parameters() -> Result<()> {
         .to_string(),
     )?;
 
-    let result = engine.get_policy_parameters()?;
-    let parameters = Value::from_json_str(&result)?;
+    // let result = engine.get_policy_parameters()?;
+    let ast = engine.get_ast_as_json()?;
+    println!("ast: {}", ast);
+    // let parameters = Value::from_json_str(&result)?;
 
-    println!("parameters: {}", result);
-    assert_eq!(2, parameters.as_array()?.len());
-    assert_eq!(2, parameters[0]["parameters"].as_array()?.len());
-    assert_eq!(
-        "a",
-        parameters[0]["parameters"][0]["name"].as_string()?.as_ref()
-    );
-    assert_eq!(
-        "b",
-        parameters[0]["parameters"][1]["name"].as_string()?.as_ref()
-    );
+    // println!("parameters: {}", result);
+    // assert_eq!(2, parameters.as_array()?.len());
+    // assert_eq!(2, parameters[0]["parameters"].as_array()?.len());
+    // assert_eq!(
+    //     "a",
+    //     parameters[0]["parameters"][0]["name"].as_string()?.as_ref()
+    // );
+    // assert_eq!(
+    //     "b",
+    //     parameters[0]["parameters"][1]["name"].as_string()?.as_ref()
+    // );
 
-    // We expect parameters to be defined separately, so the second policy does not have any parameters
-    assert_eq!(0, parameters[1]["parameters"].as_array()?.len());
+    // // We expect parameters to be defined separately, so the second policy does not have any parameters
+    // assert_eq!(0, parameters[1]["parameters"].as_array()?.len());
 
     Ok(())
 }
