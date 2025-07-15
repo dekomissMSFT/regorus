@@ -995,7 +995,7 @@ impl Engine {
                     let path = Parser::get_path_ref_components(refr)?;
                     let paths: Vec<&str> = path.iter().map(|s| s.text()).collect();
 
-                    if paths.len() == 2 && paths[0] == "parameters".to_string() {
+                    if paths.len() == 2 && paths[0] == "parameters" {
                         // Todo: Fetch fields other than name from rego metadoc for the parameter
                         parameters.push(PolicyParameterDetails {
                             name: paths[1].to_string(),
@@ -1013,7 +1013,7 @@ impl Engine {
                             let path = Parser::get_path_ref_components(refr)?;
                             let paths: Vec<&str> = path.iter().map(|s| s.text()).collect();
 
-                            if paths.len() == 2 && paths[0] == "parameters".to_string() {
+                            if paths.len() == 2 && paths[0] == "parameters" {
                                 // Todo: Fetch fields other than name from rego metadoc for the parameter
                                 modifiers.push(PolicyModifierDetails {
                                     name: paths[1].to_string(),
@@ -1028,8 +1028,8 @@ impl Engine {
 
             policy_parameter_definitions.push(PolicyParameterDefinition {
                 source_file: m.package.span.source.file().to_string(),
-                parameters: parameters,
-                modifiers: modifiers
+                parameters,
+                modifiers
             });
         }
 
