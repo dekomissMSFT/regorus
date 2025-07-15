@@ -103,12 +103,10 @@ fn extension_with_state() -> Result<()> {
 }
 
 #[test]
-#[cfg(feature = "ast")]
-#[cfg_attr(docsrs, doc(cfg(feature = "ast")))]
 fn get_policy_package_names() -> Result<()> {
     let mut engine = Engine::new();
     engine.add_policy(
-        "test.rego".to_string(),
+        "testPolicy1".to_string(),
         r#"package test
                
                 deny if {
@@ -119,7 +117,7 @@ fn get_policy_package_names() -> Result<()> {
     )?;
 
     engine.add_policy(
-        "test.rego".to_string(),
+        "testPolicy2".to_string(),
         r#"package test.nested.name
                 deny if {
                     1 == 2
@@ -128,18 +126,26 @@ fn get_policy_package_names() -> Result<()> {
         .to_string(),
     )?;
 
-    let result = engine.get_policy_package_names()?;
-    // let package_names = Value::from_json_str(&result)?;
+    let package_names = engine.get_policy_package_names()?;
 
-    // assert_eq!(2, package_names.as_array()?.len());
-    // assert_eq!(
-    //     "test",
-    //     package_names[0]["package_name"].as_string()?.as_ref()
-    // );
-    // assert_eq!(
-    //     "test.nested.name",
-    //     package_names[1]["package_name"].as_string()?.as_ref()
-    // );
+    assert_eq!(2, package_names.len());
+    assert_eq!(
+        "test",
+        package_names[0].package_name
+    );
+    assert_eq!(
+        "testPolicy1",
+        package_names[0].source_file
+    );
+
+    assert_eq!(
+        "test.nested.name",
+        package_names[1].package_name
+    );
+    assert_eq!(
+        "testPolicy2",
+        package_names[1].source_file
+    );
     Ok(())
 }
 
@@ -147,7 +153,7 @@ fn get_policy_package_names() -> Result<()> {
 fn get_policy_parameters() -> Result<()> {
     let mut engine = Engine::new();
     engine.add_policy(
-        "test.rego".to_string(),
+        "testPolicy1".to_string(),
         r#"package test
                 default parameters.a = 5
                 default parameters.b = { asdf: 10}
@@ -162,12 +168,14 @@ fn get_policy_parameters() -> Result<()> {
     )?;
 
     engine.add_policy(
-        "test.rego".to_string(),
+        "testPolicy2".to_string(),
         r#"package test
                 default parameters = {
                     a: 5,
                     b: { asdf: 10 }
                 }
+
+                parameters.c = 5
 
                 deny if {
                     parameters.a == parameters.b.asdf
@@ -176,25 +184,33 @@ fn get_policy_parameters() -> Result<()> {
         .to_string(),
     )?;
 
-    // let result = engine.get_policy_parameters()?;
-    let ast = engine.get_ast_as_json()?;
-    println!("ast: {}", ast);
+    let parameters = engine.get_policy_parameters()?;
+    // let ast = engine.get_ast_as_json()?;
+    // println!("ast: {}", ast);
     // let parameters = Value::from_json_str(&result)?;
 
-    // println!("parameters: {}", result);
-    // assert_eq!(2, parameters.as_array()?.len());
-    // assert_eq!(2, parameters[0]["parameters"].as_array()?.len());
-    // assert_eq!(
-    //     "a",
-    //     parameters[0]["parameters"][0]["name"].as_string()?.as_ref()
-    // );
-    // assert_eq!(
-    //     "b",
-    //     parameters[0]["parameters"][1]["name"].as_string()?.as_ref()
-    // );
+    assert_eq!(2, parameters.len());
 
-    // // We expect parameters to be defined separately, so the second policy does not have any parameters
-    // assert_eq!(0, parameters[1]["parameters"].as_array()?.len());
+    let test_policy1_parameters = &parameters[0];
+    assert_eq!(2, test_policy1_parameters.parameters.len());
+    assert_eq!(
+        "a",
+        test_policy1_parameters.parameters[0].name
+    );
+    assert_eq!(
+        "b",
+        test_policy1_parameters.parameters[1].name
+    );
+
+    // We expect parameters to be defined separately, so the second policy does not have any parameters
+    let test_policy2_parameters = &parameters[1];
+    assert_eq!(0, test_policy2_parameters.parameters.len());
+
+    assert_eq!(1, test_policy2_parameters.modifiers.len());
+    assert_eq!(
+        "c",
+        test_policy2_parameters.modifiers[0].name
+    );
 
     Ok(())
 }

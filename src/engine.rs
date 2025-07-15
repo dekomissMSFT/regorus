@@ -25,27 +25,27 @@ pub struct Engine {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct PolicyPackageNameDefinition {
-    source_file: String,
-    package_name: String
+    pub source_file: String,
+    pub package_name: String
 }
 
 #[derive(Debug, Clone, Serialize)]
 pub struct PolicyParameterDetails {
-    name: String,
-    modifiable: bool,
-    required: bool,
+    pub name: String,
+    pub modifiable: bool,
+    pub required: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]
 pub struct PolicyModifierDetails {
-    name: String,
+    pub name: String,
 }
 
 #[derive(Debug, Clone, Serialize)]
 pub struct PolicyParameterDefinition {
-    source_file: String,
-    parameters: Vec<PolicyParameterDetails>,
-    modifiers: Vec<PolicyModifierDetails>,
+    pub source_file: String,
+    pub parameters: Vec<PolicyParameterDetails>,
+    pub modifiers: Vec<PolicyModifierDetails>,
 }
 
 /// Create a default engine.
@@ -944,10 +944,9 @@ impl Engine {
     /// engine.add_policy("test2.rego".to_string(), "package test.multi.segment\n x := 1".to_string())?;
     ///
     /// let package_names = engine.get_policy_package_names()?;
-    /// let value = Value::from_json_str(&package_names)?;
     ///
-    /// assert_eq!(value[0]["package_name"].as_string()?.as_ref(), "test");
-    /// assert_eq!(value[1]["package_name"].as_string()?.as_ref(), "test.multi.segment");
+    /// assert_eq!("test", package_names[0].package_name);
+    /// assert_eq!("test.multi.segment", package_names[1].package_name);
     /// # Ok(())
     /// # }
     /// ```
@@ -972,12 +971,12 @@ impl Engine {
     /// # use anyhow::{bail, Result};
     /// # fn main() -> Result<()> {
     /// # let mut engine = Engine::new();
-    /// engine.add_policy("test.rego".to_string(), "package test\n x := 1".to_string())?;
+    /// engine.add_policy("test.rego".to_string(), "package test default parameters.a = 5 parameters.b = 10\n x := 1".to_string())?;
     ///
-    /// let package_names = engine.get_policy_parameters()?;
-    /// let value = Value::from_json_str(&package_names)?;
+    /// let parameters = engine.get_policy_parameters()?;
     ///
-    /// println!("{}", package_names);
+    /// assert_eq!("a", parameters[0].parameters[0].name);
+    /// assert_eq!("b", parameters[0].modifiers[0].name);
     ///
     /// # Ok(())
     /// # }
