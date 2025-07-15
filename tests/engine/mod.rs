@@ -129,23 +129,11 @@ fn get_policy_package_names() -> Result<()> {
     let package_names = engine.get_policy_package_names()?;
 
     assert_eq!(2, package_names.len());
-    assert_eq!(
-        "test",
-        package_names[0].package_name
-    );
-    assert_eq!(
-        "testPolicy1",
-        package_names[0].source_file
-    );
+    assert_eq!("test", package_names[0].package_name);
+    assert_eq!("testPolicy1", package_names[0].source_file);
 
-    assert_eq!(
-        "test.nested.name",
-        package_names[1].package_name
-    );
-    assert_eq!(
-        "testPolicy2",
-        package_names[1].source_file
-    );
+    assert_eq!("test.nested.name", package_names[1].package_name);
+    assert_eq!("testPolicy2", package_names[1].source_file);
     Ok(())
 }
 
@@ -193,24 +181,15 @@ fn get_policy_parameters() -> Result<()> {
 
     let test_policy1_parameters = &parameters[0];
     assert_eq!(2, test_policy1_parameters.parameters.len());
-    assert_eq!(
-        "a",
-        test_policy1_parameters.parameters[0].name
-    );
-    assert_eq!(
-        "b",
-        test_policy1_parameters.parameters[1].name
-    );
+    assert_eq!("a", test_policy1_parameters.parameters[0].name);
+    assert_eq!("b", test_policy1_parameters.parameters[1].name);
 
     // We expect parameters to be defined separately, so the second policy does not have any parameters
     let test_policy2_parameters = &parameters[1];
     assert_eq!(0, test_policy2_parameters.parameters.len());
 
     assert_eq!(1, test_policy2_parameters.modifiers.len());
-    assert_eq!(
-        "c",
-        test_policy2_parameters.modifiers[0].name
-    );
+    assert_eq!("c", test_policy2_parameters.modifiers[0].name);
 
     Ok(())
 }

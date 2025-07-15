@@ -26,7 +26,7 @@ pub struct Engine {
 #[derive(Debug, Clone, Serialize)]
 pub struct PolicyPackageNameDefinition {
     pub source_file: String,
-    pub package_name: String
+    pub package_name: String,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -988,7 +988,6 @@ impl Engine {
             let mut modifiers = vec![];
 
             for rule in &m.policy {
-
                 // Extract parameter definitions from the policy rule
                 // e.g. default parameters.a = 5
                 if let Rule::Default { refr, .. } = rule.as_ref() {
@@ -1029,7 +1028,7 @@ impl Engine {
             policy_parameter_definitions.push(PolicyParameterDefinition {
                 source_file: m.package.span.source.file().to_string(),
                 parameters,
-                modifiers
+                modifiers,
             });
         }
 
